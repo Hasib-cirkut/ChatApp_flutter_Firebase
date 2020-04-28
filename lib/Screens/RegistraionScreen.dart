@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegistrationScreen extends StatefulWidget {
   @override
@@ -6,6 +7,34 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
+  String email;
+  String password;
+  bool showSpinner = false;
+
+  final _auth = FirebaseAuth.instance;
+
+  void registerUser() async {
+    FocusScopeNode currentFocus = FocusScope.of(context);
+
+    if (!currentFocus.hasPrimaryFocus) {
+      currentFocus.unfocus();
+    }
+
+    setState(() {
+      showSpinner = true;
+    });
+
+    try {
+      final newUser = await _auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+
+      if (newUser != null) {
+        showSpinner = false;
+        Navigator.pushNamed(context, '/chat');
+      }
+    } catch (e) {}
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,6 +82,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                             hintText: 'Email address', filled: true),
+                        onChanged: (value) {
+                          email = value;
+                        },
                       ),
                     ),
                     Expanded(
@@ -62,12 +94,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         keyboardType: TextInputType.visiblePassword,
                         decoration:
                             InputDecoration(hintText: 'Password', filled: true),
+                        onChanged: (value) {
+                          password = value;
+                        },
                       ),
                     ),
                     Expanded(
                       child: RaisedButton(
                         elevation: 10,
-                        onPressed: () {},
+                        onPressed: () {
+                          registerUser();
+                        },
                         child: Text('REGISTER'),
                       ),
                     ),
