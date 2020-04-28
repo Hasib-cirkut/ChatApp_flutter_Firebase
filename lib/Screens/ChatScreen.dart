@@ -30,20 +30,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void sendMessage() {
-    _fireStore
-        .collection('messages')
-        .add({'text': message, 'sender': loggedInUser.email});
+    _fireStore.collection('messages').add({
+      'text': message,
+      'sender': loggedInUser.email,
+      'timestamp': DateTime.now().toUtc().millisecondsSinceEpoch
+    });
 
     messageTextController.clear();
-  }
-
-  //Subscribe and listen to messageStream
-  void messagesStream() async {
-    await for (var snapshot in _fireStore.collection('messages').snapshots()) {
-      for (var messageBody in snapshot.documents) {
-        print(messageBody.data);
-      }
-    }
   }
 
   @override
@@ -51,7 +44,6 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
 
     getCurrentUser();
-    //messagesStream();
   }
 
   @override
@@ -81,6 +73,68 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Container(
           child: Column(
             children: <Widget>[
+              Expanded(
+                flex: 7,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _fireStore
+                          .collection('messages')
+                          .orderBy('timestamp', descending: true)
+                          .snapshots(),
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) {
+                          return Center(child: CircularProgressIndicator());
+                        } else {
+                          var listMessage = snapshot.data.documents;
+                          return Expanded(
+                            child: ListView.builder(
+                              shrinkWrap: true,
+                              padding: EdgeInsets.all(10.0),
+                              itemBuilder: (context, index) => MessageBuble(
+                                sender: listMessage[index]['sender'],
+                                text: listMessage[index]['text'],
+                                isMe: loggedInUser.email ==
+                                    listMessage[index]['sender'],
+                              ),
+                              itemCount: listMessage.length,
+                              reverse: true,
+                            ),
+                          );
+                        }
+                      },
+                      // builder: (context, snapshot) {
+                      //   if (!snapshot.hasData) {
+                      //     return Center(child: CircularProgressIndicator());
+                      //   }
+                      //   final messages = snapshot.data.documents;
+                      //   List<MessageBuble> messageWidget = [];
+
+                      //   for (var message in messages) {
+                      //     final messageText = message.data['text'];
+                      //     final messageSender = message.data['sender'];
+
+                      //     final messageBubble = MessageBuble(
+                      //       sender: messageSender,
+                      //       text: messageText,
+                      //       isMe: loggedInUser.email == messageSender,
+                      //     );
+
+                      //     messageWidget.add(messageBubble);
+                      //   }
+
+                      //   return Expanded(
+                      //     child: ListView(
+                      //       children: messageWidget,
+                      //     ),
+                      //   );
+                      // },
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 flex: 1,
                 child: Row(
@@ -115,45 +169,6 @@ class _ChatScreenState extends State<ChatScreen> {
                           },
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 7,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    StreamBuilder<QuerySnapshot>(
-                      stream: _fireStore.collection('messages').snapshots(),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          print('data loading');
-                        }
-                        final messages = snapshot.data.documents.reversed;
-                        List<MessageBuble> messageWidget = [];
-
-                        for (var message in messages) {
-                          final messageText = message.data['text'];
-                          final messageSender = message.data['sender'];
-
-                          messageWidget.add(
-                            MessageBuble(
-                              sender: messageSender,
-                              text: messageText,
-                              isMe: loggedInUser.email == messageSender,
-                            ),
-                          );
-                        }
-
-                        return Expanded(
-                          child: ListView(
-                            reverse: true,
-                            children: messageWidget,
-                          ),
-                        );
-                      },
                     ),
                   ],
                 ),

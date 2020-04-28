@@ -75,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Expanded(
-                flex: 3,
+                flex: 4,
                 child: Container(
                   margin: EdgeInsets.symmetric(horizontal: 50),
                   child: Column(
@@ -104,11 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       Expanded(
-                        child: RaisedButton(
-                          onPressed: () {
-                            login();
-                          },
-                          child: Text('LOGIN'),
+                        child: Container(
+                          margin: EdgeInsets.symmetric(vertical: 20),
+                          child: RaisedButton(
+                            onPressed: () {
+                              login();
+                            },
+                            child: Text('LOGIN'),
+                          ),
                         ),
                       ),
                       Expanded(
@@ -141,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               Expanded(
-                flex: 4,
+                flex: 1,
                 child: Container(),
               ),
             ],
